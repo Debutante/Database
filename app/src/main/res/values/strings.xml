@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">dbTest</string>
+    <string name="search">查找的单词</string>
+    <string name="vocabulary">单词</string>
+    <string name="meaning">含义</string>
+    <string name="sample">示例</string>
+
+</resources>
