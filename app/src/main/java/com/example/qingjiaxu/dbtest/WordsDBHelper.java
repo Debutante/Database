@@ -9,13 +9,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WordsDBHelper extends SQLiteOpenHelper {
-    private final static String DATABASE_NAME = "wordsdb.db";
+    private final static String DATABASE_NAME = "words.db";
     private final static int DATABASE_VERSION = 1;
     // 建表SQL
-    private final static String SQL_CREATE_DATABASE = "create table words (id integer primary key autoincrement,word text,meaning text,sample text)";
+    private final static String SQL_CREATE_DATABASE = "create table words (id integer primary key autoincrement,word text,meaning text,sample text,collect integer default 0)";
 
     //删表SQL 
     private final static String SQL_DELETE_DATABASE = "DROP TABLE IF EXISTS words";
+
+//    public WordsDBHelper(){
+//        super();
+//    }
+
+
 
     public WordsDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -32,14 +38,14 @@ public class WordsDBHelper extends SQLiteOpenHelper {
         onCreate(sqLiteDatabase);
     }
     public void insertInto(String name,String meaning,String sample){
-        String  sql="insert into words ( word, meaning,sample) values (?,?,?)";
+        String sql="insert into words ( word, meaning,sample) values (?,?,?)";
         SQLiteDatabase db=this.getWritableDatabase();
         db.execSQL(sql,new String[]{name,meaning,sample});
         System.out.println(name);
     }
 
     public List<Word> selectAll(){
-        String sql="select * from words";
+        String sql="select * from words order by word asc";
         SQLiteDatabase db=this.getReadableDatabase();
         Cursor cursor=db.rawQuery(sql,null);
         List<Word> list=new ArrayList<>();
@@ -48,11 +54,13 @@ public class WordsDBHelper extends SQLiteOpenHelper {
             String name=cursor.getString(cursor.getColumnIndex("word"));
             String mean=cursor.getString(cursor.getColumnIndex("meaning"));
             String sample=cursor.getString(cursor.getColumnIndex("sample"));
+            Integer collect=cursor.getInt(cursor.getColumnIndex("collect"));
             Word w=new Word();
             w.setWordId(wordId);
             w.setMeaning(mean);
             w.setName(name);
             w.setSample(sample);
+            w.setCollect(collect);
             list.add(w);
 
         }
@@ -66,13 +74,17 @@ public class WordsDBHelper extends SQLiteOpenHelper {
         Cursor cursor=db.rawQuery(sql,new String[]{"%"+strWordSearch+"%"});
         List<Word> list=new ArrayList<>();
         while(cursor.moveToNext()){
+            Integer wordId=cursor.getInt(cursor.getColumnIndex("id"));
             String name=cursor.getString(cursor.getColumnIndex("word"));
             String mean=cursor.getString(cursor.getColumnIndex("meaning"));
             String sample=cursor.getString(cursor.getColumnIndex("sample"));
+            Integer collect=cursor.getInt(cursor.getColumnIndex("collect"));
             Word w=new Word();
+            w.setWordId(wordId);
             w.setMeaning(mean);
             w.setName(name);
             w.setSample(sample);
+            w.setCollect(collect);
             list.add(w);
 
         }
@@ -93,5 +105,34 @@ public class WordsDBHelper extends SQLiteOpenHelper {
         db.execSQL(sql, new String[]{name, meaning, sample});
     }
 
+    public void updateCollect(Integer wordId, Integer collect){
+        String sql="update words set collect=" + collect + " where id=" + wordId;
+        SQLiteDatabase db=this.getWritableDatabase();
+        db.execSQL(sql);
+    }
+
+    public List<Word> selectCollect() {
+        String sql="select * from words where collect=1";
+        SQLiteDatabase db=this.getReadableDatabase();
+        Cursor cursor=db.rawQuery(sql, new String[]{});
+        List<Word> list=new ArrayList<>();
+        while(cursor.moveToNext()){
+            Integer wordId=cursor.getInt(cursor.getColumnIndex("id"));
+            String name=cursor.getString(cursor.getColumnIndex("word"));
+            String mean=cursor.getString(cursor.getColumnIndex("meaning"));
+            String sample=cursor.getString(cursor.getColumnIndex("sample"));
+            Integer collect=cursor.getInt(cursor.getColumnIndex("collect"));
+            Word w=new Word();
+            w.setWordId(wordId);
+            w.setMeaning(mean);
+            w.setName(name);
+            w.setSample(sample);
+            w.setCollect(collect);
+            list.add(w);
+
+        }
+        cursor.close();
+        return list;
+    }
 }
 

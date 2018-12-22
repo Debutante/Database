@@ -1,8 +1,13 @@
 <resources>
-    <string name="app_name">dbTest</string>
+    <string name="app_name">小蓝书</string>
     <string name="search">查找的单词</string>
     <string name="vocabulary">单词</string>
     <string name="meaning">含义</string>
     <string name="sample">示例</string>
-
+    <string name="collect">收藏单词</string>
+    <string name="select_search">查找单词</string>
+    <string name="select_insert">新增单词</string>
+    <string name="select_online">网络查词</string>
+    <string name="select_collect">收藏夹</string>
+    <string name="error_info">出错啦，小笨蛋</string>
 </resources>

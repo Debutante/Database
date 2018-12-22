@@ -2,16 +2,21 @@ package com.example.qingjiaxu.dbtest;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.opengl.ETC1;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -19,8 +24,19 @@ import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,6 +44,10 @@ public class MainActivity extends AppCompatActivity {
     protected ListView listView;
     protected List<Word> list;
     protected MyAdapter adapter;
+    protected FragmentTransaction fragmentTransaction;
+    protected FloatingActionButton fab;
+    private int errorCode;
+    private String translationText;
     private static final String TAG = "MainActivity";
 
     @Override
@@ -35,8 +55,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        listView = (ListView)findViewById(R.id.list_view);
+        listView = findViewById(R.id.list_view);
+        fab = findViewById(R.id.favorite);
         registerForContextMenu(listView);
+
+        Log.d(TAG, "onCreate: ****我是主函数，现在我跑了一趟****");
 
         mDbHelper = new WordsDBHelper(this);
 //        mDbHelper.getWritableDatabase();
@@ -47,6 +70,81 @@ public class MainActivity extends AppCompatActivity {
         adapter=new MyAdapter(list,getApplicationContext());
         listView.setAdapter(adapter);
 
+        // 判断横屏
+        int orientation = getResources().getConfiguration().orientation;
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            // 添加框架
+            fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            RightFragment rightFragment = new RightFragment();
+            fragmentTransaction.add(R.id.right_layout, rightFragment);
+            fragmentTransaction.commit();
+        }
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Word w = list.get(position);
+//                Toast.makeText(MainActivity.this, w.getName(), Toast.LENGTH_SHORT).show();
+                // 判断横屏竖屏
+                int orientation = getResources().getConfiguration().orientation;
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+
+
+//                    Word word = new Word(w.getWordId(), w.getName(), w.getMeaning(), w.getSample());
+                    replaceFragment(w);
+
+                } else if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    Intent intent = new Intent(MainActivity.this, DisplayActivity.class);
+
+                    intent.putExtra("wordId", w.getWordId());
+                    intent.putExtra("name", w.getName());
+                    intent.putExtra("meaning", w.getMeaning());
+
+                    intent.putExtra("sample", w.getSample());
+                    intent.putExtra("collect", w.getCollect());
+                    Log.d(TAG, "onItemClick: "+w.getName());
+
+                    startActivity(intent);
+                }
+
+            }
+        });
+
+        fab.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                int orientation = getResources().getConfiguration().orientation;
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Intent intent = new Intent(MainActivity.this, CollectActivity.class);
+                    startActivity(intent);
+                }
+                else if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    Intent intent = new Intent(MainActivity.this, CollectActivity.class);
+                    startActivity(intent);
+                }
+            }
+        });
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart: 我又重新启动啦");
+        list=mDbHelper.selectAll();
+        adapter=new MyAdapter(list,getApplicationContext());
+        listView.setAdapter(adapter);
+    }
+
+    public void replaceFragment(Word word){
+        fragmentTransaction= getSupportFragmentManager().beginTransaction();
+        //通过调用RightFragment中的getInstance方法传修改文本
+        RightFragment rightFragment = RightFragment.getInstance(word);
+        //此时使用add方法会造成右侧fragment中文本重叠（未设置BackGround时）
+        fragmentTransaction.replace(R.id.right_layout, rightFragment);
+        fragmentTransaction.commit();
     }
 
     @Override
@@ -63,6 +161,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.action_insert:
                 InsertDialog();
+                break;
+            case R.id.action_online:
+                OnlineDialog();;
                 break;
             default:
         }
@@ -196,29 +297,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void UpdateDialog(final Integer wordId, final String strWord, final String strMeaning, final String strSample){
-        final LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.insert, null);
-        ((EditText)linearLayout.findViewById(R.id.txtWord)).setText(strWord);
-        ((EditText)linearLayout.findViewById(R.id.txtMeaning)).setText(strMeaning);
-        ((EditText)linearLayout.findViewById(R.id.txtSample)).setText(strSample);
-        new AlertDialog.Builder(this)
-                .setTitle("修改单词")
-                .setView(linearLayout)
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String strNewWord = ((EditText)linearLayout.findViewById(R.id.txtWord)).getText().toString();
-                        String strNewMeaning = ((EditText)linearLayout.findViewById(R.id.txtMeaning)).getText().toString();
-                        String strNewSample = ((EditText)linearLayout.findViewById(R.id.txtSample)).getText().toString();
 
-                        mDbHelper.updateInfo(wordId, strNewWord, strNewMeaning, strNewSample);
-                        list=mDbHelper.selectAll();
-                        adapter=new MyAdapter(list,getApplicationContext());
-                        listView.setAdapter(adapter);
-                    }
-                })
+        private void UpdateDialog(final Integer wordId, final String strWord, final String strMeaning, final String strSample){
+            final LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.insert, null);
+            ((EditText)linearLayout.findViewById(R.id.txtWord)).setText(strWord);
+            ((EditText)linearLayout.findViewById(R.id.txtMeaning)).setText(strMeaning);
+            ((EditText)linearLayout.findViewById(R.id.txtSample)).setText(strSample);
+            new AlertDialog.Builder(this)
+                    .setTitle("修改单词")
+                    .setView(linearLayout)
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            String strNewWord = ((EditText)linearLayout.findViewById(R.id.txtWord)).getText().toString();
+                            String strNewMeaning = ((EditText)linearLayout.findViewById(R.id.txtMeaning)).getText().toString();
+                            String strNewSample = ((EditText)linearLayout.findViewById(R.id.txtSample)).getText().toString();
 
-                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            mDbHelper.updateInfo(wordId, strNewWord, strNewMeaning, strNewSample);
+                            list=mDbHelper.selectAll();
+                            adapter=new MyAdapter(list,getApplicationContext());
+                            listView.setAdapter(adapter);
+                        }
+                    })
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
@@ -234,5 +335,94 @@ public class MainActivity extends AppCompatActivity {
         mDbHelper.close();
     }
 
+    private void OnlineDialog() {
+        //final LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.insert, null);
+        final View outerView = LayoutInflater.from(this).inflate(R.layout.search, null);
+        new AlertDialog.Builder(this)
+                .setView(outerView)
+                .setTitle("在线查词")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final String strWord=((EditText)outerView.findViewById(R.id.txtSearchWord)).getText().toString();
+                        if (strWord.isEmpty())
+                            Toast.makeText(MainActivity.this, "请先输入要查询的单词", Toast.LENGTH_SHORT).show();
+                        else requestTranslation(strWord);
+
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .create()
+                .show();
+
+    }
+
+    private void sendOkHttpRequest(String address, okhttp3.Callback callback) {
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder().url(address).build();
+        client.newCall(request).enqueue(callback);
+    }
+
+    //http://fanyi.youdao.com/translate?&doctype=json&type=EN2TOZH_CN&i=lean
+    //{"type":"EN2ZH_CN","errorCode":0,"elapsedTime":0,"translateResult":[[{"src":"lean","tgt":"精益"}]]}
+    private int parseJSONWithJsonObject(String jsonData) {
+        try {
+            JSONObject jsonObject1 = new JSONObject(jsonData);
+            errorCode = jsonObject1.getInt("errorCode");
+            if (errorCode == 0) {
+                JSONArray jsonArray1 = jsonObject1.getJSONArray("translateResult");
+                JSONArray jsonArray2 = jsonArray1.getJSONArray(0);
+                JSONObject jsonObject2 = jsonArray2.getJSONObject(0);
+                translationText = jsonObject2.getString("tgt");
+                Log.e(TAG, "parseJSONWithJsonObject: "+translationText);
+                //Toast.makeText(this, translationText, Toast.LENGTH_SHORT).show();
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, Log.getStackTraceString(e));
+            //Toast.makeText(this, "获取翻译结果失败", Toast.LENGTH_SHORT).show();
+        }
+        return errorCode;
+    }
+
+    public void requestTranslation(final String wordContent) {
+        String exchangeUrl = "http://fanyi.youdao.com/translate?&doctype=json&type=EN2TOZH_CN&i=" + wordContent;
+        sendOkHttpRequest(exchangeUrl, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.e(TAG, Log.getStackTraceString(e));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "获取翻译结果失败", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String responseText = response.body().string();
+                final int result = parseJSONWithJsonObject(responseText);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (result == 0) {
+                            Toast.makeText(MainActivity.this, translationText, Toast.LENGTH_LONG).show();
+                            mDbHelper.insertInto(wordContent, translationText, "Hey,"+wordContent+".");
+
+                            list=mDbHelper.selectAll();
+                            adapter=new MyAdapter(list,getApplicationContext());
+                            listView.setAdapter(adapter);
+                        }
+                        else Toast.makeText(MainActivity.this, "获取翻译结果失败", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
 
 }

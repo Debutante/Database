@@ -41,11 +41,13 @@ public class MyAdapter extends BaseAdapter {
         TextView text_meaning=view.findViewById(R.id.meaning);
         TextView text_sample=view.findViewById(R.id.sample);
         TextView text_id=view.findViewById(R.id.wordId);
+        TextView text_collect=view.findViewById(R.id.collect);
 
         text_id.setText(list.get(position).getWordId().toString());
         text_name.setText(list.get(position).getName());
         text_meaning.setText(list.get(position).getMeaning());
         text_sample.setText(list.get(position).getSample());
+        text_collect.setText(list.get(position).getCollect().toString());
 
         return view;
     }

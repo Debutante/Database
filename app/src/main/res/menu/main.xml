@@ -1,8 +1,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/action_search"
-        android:title="查找"/>
+        android:title="@string/select_search"/>
     <item
         android:id="@+id/action_insert"
-        android:title="新增"/>
+        android:title="@string/select_insert"/>
+    <item
+        android:id="@+id/action_online"
+        android:title="@string/select_online"/>
+    <!--<item-->
+        <!--android:id="@+id/action_collect"-->
+        <!--android:title="@string/select_collect"/>-->
 </menu>

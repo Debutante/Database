@@ -15,7 +15,8 @@
         <EditText
             android:id="@+id/txtWord"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:imeOptions="flagNoExtractUi"/>
 
     </LinearLayout>
 
@@ -25,13 +26,14 @@
         <TextView
             android:layout_width="30dp"
             android:layout_height="wrap_content"
-            android:text="@string/vocabulary"
+            android:text="@string/meaning"
             android:textSize="15sp"/>
 
         <EditText
             android:id="@+id/txtMeaning"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:imeOptions="flagNoExtractUi"/>
 
     </LinearLayout>
 
@@ -47,7 +49,8 @@
         <EditText
             android:id="@+id/txtSample"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:imeOptions="flagNoExtractUi"/>
 
     </LinearLayout>
 

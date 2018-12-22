@@ -5,6 +5,9 @@ public class Word{
     private String name;
     private String meaning;
     private String sample;
+    private Integer collect;
+
+
 
     public Integer getWordId() {
         return wordId;
@@ -36,5 +39,13 @@ public class Word{
 
     public void setSample(String sample) {
         this.sample = sample;
+    }
+
+    public Integer getCollect() {
+        return collect;
+    }
+
+    public void setCollect(Integer collect) {
+        this.collect = collect;
     }
 }

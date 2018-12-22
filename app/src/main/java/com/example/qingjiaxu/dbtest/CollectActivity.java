@@ -9,28 +9,29 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.List;
 
-public class SearchActivity extends AppCompatActivity {
-    private static final String TAG = "SearchActivity";
+public class CollectActivity extends AppCompatActivity {
+
+    private static final String TAG = "CollectActivity";
     protected FragmentTransaction fragmentTransaction;
-    List<Word> list;
+    protected List<Word> list;
+    protected WordsDBHelper mDbHelper;
+    protected ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.search_main);
+        setContentView(R.layout.collect_main);
 
-        ListView listView = findViewById(R.id.list_view);
-        Intent intent=getIntent();
-        String searchWord = intent.getStringExtra("searchWord");
+        listView = findViewById(R.id.list_view);
+        FloatingActionButton fab = findViewById(R.id.favorite);
 
-        WordsDBHelper mDbHelper = new WordsDBHelper(this);
-        list = mDbHelper.selectCertain(searchWord);
+        mDbHelper = new WordsDBHelper(this);
+        list = mDbHelper.selectCollect();
 
         // 判断横屏
         int orientation = getResources().getConfiguration().orientation;
@@ -40,15 +41,18 @@ public class SearchActivity extends AppCompatActivity {
             RightFragment rightFragment = new RightFragment();
             fragmentTransaction.add(R.id.right_layout, rightFragment);
             fragmentTransaction.commit();
-            FloatingActionButton fab = findViewById(R.id.favorite);
-            fab.setVisibility(View.INVISIBLE);
+
         }
 
         if (list.size() > 0){
             MyAdapter adapter=new MyAdapter(list,getApplicationContext());
             listView.setAdapter(adapter);
         }
-        else Toast.makeText(SearchActivity.this,"没有找到", Toast.LENGTH_LONG).show();
+        else {
+            Toast.makeText(CollectActivity.this,"收藏夹里空空如也，快去添加单词吧", Toast.LENGTH_LONG).show();
+//            Intent intent = new Intent(CollectActivity.this, MainActivity.class);
+//            startActivity(intent);
+        }
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -64,7 +68,7 @@ public class SearchActivity extends AppCompatActivity {
 
                 } else if (orientation == Configuration.ORIENTATION_PORTRAIT) {
 //                Toast.makeText(MainActivity.this, w.getName(), Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(SearchActivity.this, DisplayActivity.class);
+                    Intent intent = new Intent(CollectActivity.this, DisplayActivity.class);
                     Log.d(TAG, "*******onItemClick*********");
                     Log.d(TAG, "" + w.getWordId());
                     Log.d(TAG, "*******onItemClick*********");
@@ -79,6 +83,16 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
 
+
+        //fab.setVisibility(View.INVISIBLE);
+        fab.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
     }
 
     public void replaceFragment(Word word){
@@ -88,5 +102,22 @@ public class SearchActivity extends AppCompatActivity {
         //此时使用add方法会造成右侧fragment中文本重叠（未设置BackGround时）
         fragmentTransaction.replace(R.id.right_layout, rightFragment);
         fragmentTransaction.commit();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mDbHelper = new WordsDBHelper(this);
+        list = mDbHelper.selectCollect();
+        if (list.size() > 0){
+            MyAdapter adapter=new MyAdapter(list,getApplicationContext());
+            listView.setAdapter(adapter);
+        }
+        else {
+            Toast.makeText(CollectActivity.this,"收藏夹里空空如也，快去添加单词吧", Toast.LENGTH_LONG).show();
+//            Intent intent = new Intent(CollectActivity.this, MainActivity.class);
+//            startActivity(intent);
+        }
+
     }
 }

@@ -1,0 +1,30 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    tools:context="com.example.qingjiaxu.dbtest.MainActivity">
+
+    <fragment
+        android:id="@+id/title_fragment"
+        android:name="com.example.qingjiaxu.dbtest.LeftFragment"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        tools:layout="@layout/title_frag"/>
+
+    <FrameLayout
+        android:id="@+id/right_layout"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"/>
+
+    <!--<fragment-->
+    <!--android:id="@+id/content_fragment"-->
+    <!--android:name="com.example.qingjiaxu.dbtest.RightFragment"-->
+    <!--android:layout_width="0dp"-->
+    <!--android:layout_height="match_parent"-->
+    <!--android:layout_weight="1"-->
+    <!--tools:layout="@layout/activity_display"/>-->
+
+</LinearLayout>
